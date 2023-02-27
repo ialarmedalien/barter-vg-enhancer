@@ -7,11 +7,11 @@ import variables from '../generated/variables.pass2';
 
 $('head').append($('<style type="text/css">' + variables.css.style + '</style>'));
 
-var router = new Router();
-controllers.forEach(controller => {
-	'use strict';
+const router = new Router();
+controllers.forEach((controller) => {
+    
 
-	router.registerRoutes(controller.routes);
+    router.registerRoutes(controller.routes);
 });
 
 router.route();
