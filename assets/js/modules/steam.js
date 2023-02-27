@@ -48,14 +48,15 @@ export default class Steam {
         }
 
         const cb = function (success, response) {
+            // eslint-disable-next-line no-console
             console.debug('Steam Result', response);
             if (success) {
                 $.each(response.data, (key, datum) => {
                     if (!datum.success) {
+                        // eslint-disable-next-line no-console
                         console.debug('Getting prices for ' + key + ' failed!');
                         return;
                     }
-                    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
                     gamePrices[key] = {
                         prices: datum.data.price_overview,
                     };
@@ -64,7 +65,6 @@ export default class Steam {
                         freshTime: new Date(),
                         prices: datum.data.price_overview,
                     };
-                    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
                     Greasemonkey.setValue('priceCache.' + key, JSON.stringify(cachedPrice));
                 });
                 callback(true, gamePrices);
@@ -72,6 +72,7 @@ export default class Steam {
                 callback(false, null);
             }
         };
+        // eslint-disable-next-line no-console
         console.debug('Steam URL', url);
         Http.get(url, cb);
     }

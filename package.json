@@ -1,37 +1,39 @@
 {
   "name": "barter-vg-enhancer",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Summarizes and compares all attributes in an offer for easy comparison of offer value",
   "main": "app.js",
   "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
+    "eslint": "eslint --fix '**/*.js'",
+    "eslint-check": "eslint '**/*.js'",
+    "prettier": "prettier --write '**/*.js'",
     "print-userscript-banner": "node scripts/print-userscript-banner.js",
+    "sassv": "sass --version",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alexschrod/barter-vg-enhancer.git"
+    "url": "git+https://github.com/ialarmedalien/barter-vg-enhancer.git"
   },
-  "author": "Alexander Krivács Schrøder",
+  "author": "ialarmedalien; Alexander Krivács Schrøder",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/alexschrod/barter-vg-enhancer/issues"
+    "url": "https://github.com/ialarmedalien/barter-vg-enhancer/issues"
   },
-  "homepage": "https://github.com/alexschrod/barter-vg-enhancer#readme",
+  "homepage": "https://github.com/ialarmedalien/barter-vg-enhancer#readme",
+  "dependencies": {
+    "jquery": "^3.6.3"
+  },
   "devDependencies": {
-    "grunt": "~1.0.1",
-    "grunt-contrib-compass": "~1.1",
-    "grunt-contrib-concat": "~1.0",
-    "grunt-contrib-htmlmin": "~2.3",
-    "grunt-contrib-jshint": "~1.1",
-    "grunt-contrib-uglify": "git://github.com/gruntjs/grunt-contrib-uglify.git#harmony",
-    "grunt-contrib-watch": "~1.0",
-    "grunt-files-to-javascript-variables": "git://github.com/alexschrod/grunt-files-to-javascript-variables.git#master",
-    "grunt-jscs": "~3.0",
-    "grunt-rollup": "^8.1.0",
-    "jquery": "^3.2.1",
-    "load-grunt-tasks": "~3.5",
-    "rollup-plugin-commonjs": "^8.2.6",
-    "rollup-plugin-node-resolve": "^3.0.0"
-  },
-  "dependencies": {}
+    "@rollup/plugin-commonjs": "^24.0.1",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.4.0",
+    "eslint": "^8.35.0",
+    "eslint-config-prettier": "^8.6.0",
+    "prettier": "^2.8.4",
+    "rollup": "^2.79.1",
+    "rollup-plugin-userscript-metablock": "^0.3.2"
+  }
 }

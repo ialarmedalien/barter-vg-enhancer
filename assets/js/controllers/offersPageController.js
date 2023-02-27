@@ -6,7 +6,7 @@ import Fractions from '../modules/fractions';
 import format from '../modules/format';
 import Steam from '../modules/steam';
 
-import variables from '../../generated/variables.pass2';
+import variables from '../modules/templates';
 
 const GAME_STAT_TEMPLATE_OBJECT = {
     totalTradeable: 0,
@@ -20,8 +20,6 @@ const GAME_STAT_TEMPLATE_OBJECT = {
 };
 
 function gameStatReducer(previousValue, currentValue) {
-
-
     previousValue.totalTradeable += currentValue.tradeable;
     previousValue.totalWishlist += currentValue.wishlist;
     previousValue.averageReviewScore += currentValue.positiveUserReviewPercentage;
@@ -35,8 +33,6 @@ function gameStatReducer(previousValue, currentValue) {
 }
 
 function calculateGameStats(games) {
-
-
     const gameStats = games.reduce(gameStatReducer, $.extend({}, GAME_STAT_TEMPLATE_OBJECT));
 
     gameStats.averageReviewScore = Number(
@@ -45,31 +41,15 @@ function calculateGameStats(games) {
     gameStats.averageWeightedReviewScore = Number(
         (gameStats.averageWeightedReviewScore / gameStats.voteCount).toFixed(0)
     );
-    const tradeRatio = gameStats.totalTradeable / gameStats.totalWishlist;
-    let fractions;
-    if (tradeRatio < 1) {
-        fractions = Fractions.getFractions(tradeRatio);
-        gameStats.tradeRatioRounded = fractions.rounded.n + ' : ' + fractions.rounded.d;
-        gameStats.tradeRatioActual = fractions.real.n + ' : ' + fractions.real.d;
-        gameStats.tradeRatioSmallest = fractions.smallest.n + ' : ' + fractions.smallest.d;
-    } else if (tradeRatio > 1) {
-        fractions = Fractions.getFractions(1 / tradeRatio);
-        gameStats.tradeRatioRounded = fractions.rounded.d + ' : ' + fractions.rounded.n;
-        gameStats.tradeRatioActual = fractions.real.d + ' : ' + fractions.real.n;
-        gameStats.tradeRatioSmallest = fractions.smallest.d + ' : ' + fractions.smallest.n;
-    } else {
-        gameStats.tradeRatioRounded =
-            gameStats.tradeRatioActual =
-            gameStats.tradeRatioSmallest =
-                '1 : 1';
-    }
+    const ratios = Fractions.getTradeRatios(gameStats.totalTradeable, gameStats.totalWishlist);
+    gameStats.tradeRatioRounded = ratios.rounded;
+    gameStats.summary = ratios.summary;
+    gameStats.tradeRatioActual = ratios.real;
 
     return gameStats;
 }
 
 function getGamesTradeSummary(games, idPrefix) {
-
-
     const gameStats = calculateGameStats(games);
     const tradeSummary = format(
         variables.html.tradeSummary,
@@ -80,7 +60,7 @@ function getGamesTradeSummary(games, idPrefix) {
         gameStats.averageReviewScore,
         gameStats.averageWeightedReviewScore,
         gameStats.tradeRatioRounded,
-        gameStats.tradeRatioSmallest,
+        gameStats.summary,
         gameStats.totalBundles,
         gameStats.tradeRatioActual,
         gameStats.voteCount,
@@ -90,7 +70,6 @@ function getGamesTradeSummary(games, idPrefix) {
     return tradeSummary;
 }
 
-// jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 class GameOfferModel {
     constructor(gameItem) {
         this._gameItem = gameItem;
@@ -164,15 +143,12 @@ class GameOfferModel {
         this._tradeRatioElement = value;
     }
 }
-// jscs:enable requireCamelCaseOrUpperCaseIdentifiers
 
 function addElementToGameOffers(tradeables, gameOffers) {
-
-
+    const urlRegex = /https:\/\/barter.vg\/i\/(\d+)\//;
     const tradablesItemsList = tradeables.find('.tradables_items_list li:not(.bold)');
     $.each(tradablesItemsList, (_, tradablesItems) => {
         const gameUrl = $(tradablesItems).find('.tradables_info > strong > a').attr('href');
-        const urlRegex = /https:\/\/barter.vg\/i\/(\d+)\//;
         const match = urlRegex.exec(gameUrl);
         if (match !== null) {
             const gameOffer = gameOffers.find((go) => {
@@ -188,58 +164,30 @@ function addElementToGameOffers(tradeables, gameOffers) {
     });
 }
 
-function createGameOffersFromOfferData(offerData, fromGames, toGames) {
-
-
+function createGameOffersFromOfferData(offerData, games) {
     const gameOffers = [];
-    fromGames = fromGames || [];
-    toGames = toGames || [];
-    for (const gameKey in offerData.items.from) {
-        if (offerData.items.from.hasOwnProperty(gameKey)) {
-            const gameOffer = new GameOfferModel(offerData.items.from[gameKey]);
-            gameOffer.type = 'from';
-            fromGames.push(gameOffer);
-            gameOffers.push(gameOffer);
+
+    ['to', 'from'].forEach(type => {
+        for (const gameKey in offerData.items[type]) {
+            if (gameKey in offerData.items[type]) {
+                const gameOffer = new GameOfferModel(offerData.items[type][gameKey]);
+                gameOffer.type = type;
+                gameOffers.push(gameOffer);
+                games[type].push(gameOffer);
+            }
         }
-    }
-    for (const gameKey in offerData.items.to) {
-        if (offerData.items.to.hasOwnProperty(gameKey)) {
-            const gameOffer = new GameOfferModel(offerData.items.to[gameKey]);
-            gameOffer.type = 'to';
-            toGames.push(gameOffer);
-            gameOffers.push(gameOffer);
-        }
-    }
+    })
 
     return gameOffers;
 }
 
 function addGameDetails(gameOffers) {
-
-
     gameOffers.forEach((gameOffer) => {
-        const tradeRatio = gameOffer.tradeable / gameOffer.wishlist;
-        let fractions;
-        let tradeRatioRounded;
-        let tradeRatioActual;
-        let tradeRatioSmallest;
-        if (tradeRatio < 1) {
-            fractions = Fractions.getFractions(tradeRatio);
-            tradeRatioRounded = fractions.rounded.n + ' : ' + fractions.rounded.d;
-            tradeRatioActual = fractions.real.n + ' : ' + fractions.real.d;
-            tradeRatioSmallest = fractions.smallest.n + ' : ' + fractions.smallest.d;
-        } else if (tradeRatio > 1) {
-            fractions = Fractions.getFractions(1 / tradeRatio);
-            tradeRatioRounded = fractions.rounded.d + ' : ' + fractions.rounded.n;
-            tradeRatioActual = fractions.real.d + ' : ' + fractions.real.n;
-            tradeRatioSmallest = fractions.smallest.d + ' : ' + fractions.smallest.n;
-        } else {
-            tradeRatioRounded = tradeRatioActual = tradeRatioSmallest = '1 : 1';
-        }
+        const ratios = Fractions.getTradeRatios(gameOffer.tradeable, gameOffer.wishlist);
         const gameElement = gameOffer.element;
         $(gameElement).css('position', 'relative');
         $(gameElement).find('.tradables_info').css('max-width', '380px');
-        $(gameElement).append(format(variables.html.gameDetails, tradeRatioSmallest));
+        $(gameElement).append(format(variables.html.gameDetails, ratios.summary));
         const steamStorePriceElement = $(gameElement).find('.bve-game-details__steam-store-price');
         const tradeRatioElement = $(gameElement).find('.bve-game-details__trade-ratio');
         gameOffer.steamStorePriceElement = steamStorePriceElement.get(0);
@@ -267,20 +215,21 @@ export default class OffersPageController {
             }
 
             const offerData = response.data;
-
-            const fromGames = [];
-            const toGames = [];
-            const gameOffers = createGameOffersFromOfferData(offerData, fromGames, toGames);
+            const games = {
+                to: [],
+                from: [],
+            };
+            const gameOffers = createGameOffersFromOfferData(offerData, games);
 
             const tradeables = $('.tradables');
             addElementToGameOffers(tradeables, gameOffers);
 
             const fromIdPrefix = 'offered';
-            const fromTradeSummary = getGamesTradeSummary(fromGames, fromIdPrefix);
+            const fromTradeSummary = getGamesTradeSummary(games.from, fromIdPrefix);
             tradeables.eq(0).after(fromTradeSummary);
 
             const toIdPrefix = 'requested';
-            const toTradeSummary = getGamesTradeSummary(toGames, toIdPrefix);
+            const toTradeSummary = getGamesTradeSummary(games.to, toIdPrefix);
             tradeables.eq(1).before(toTradeSummary);
 
             addGameDetails(gameOffers);
@@ -307,9 +256,9 @@ export default class OffersPageController {
                     console.error('Error fetching game prices from Steam');
                     allValues.html('Fetching prices failed!').css('color', 'red');
                 } else {
-                    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-                    for (const gamePriceIndex in gamePrices) {
-                        if (gamePrices.hasOwnProperty(gamePriceIndex)) {
+                    for (const gpi in gamePrices) {
+                        const gamePriceIndex = parseInt(gpi);
+                        if (gamePriceIndex in gamePrices) {
                             if (!currency) {
                                 currency = gamePrices[gamePriceIndex].prices.currency;
                             }
@@ -348,7 +297,6 @@ export default class OffersPageController {
                             }
                         }
                     }
-                    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
                 }
 
                 gameOffers
@@ -374,8 +322,8 @@ export default class OffersPageController {
                 fromAverageValue.html(
                     format(
                         '{0} {2} ({1} {2})',
-                        (fromDiscountedTotal / fromGames.length / 100.0).toFixed(2),
-                        (fromTotal / fromGames.length / 100.0).toFixed(2),
+                        (fromDiscountedTotal / games.from.length / 100.0).toFixed(2),
+                        (fromTotal / games.from.length / 100.0).toFixed(2),
                         currency
                     )
                 );
@@ -390,8 +338,8 @@ export default class OffersPageController {
                 toAverageValue.html(
                     format(
                         '{0} {2} ({1} {2})',
-                        (toDiscountedTotal / toGames.length / 100.0).toFixed(2),
-                        (toTotal / toGames.length / 100.0).toFixed(2),
+                        (toDiscountedTotal / games.to.length / 100.0).toFixed(2),
+                        (toTotal / games.to.length / 100.0).toFixed(2),
                         currency
                     )
                 );

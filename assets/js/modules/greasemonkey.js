@@ -1,5 +1,3 @@
-/* global GM_getValue, GM_setValue, GM_listValues, GM_deleteValue */
-
 export default class Greasemonkey {
     static getValue(name, defaultValue) {
         return GM_getValue(name, defaultValue);

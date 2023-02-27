@@ -5,7 +5,7 @@ const JSON_PROTECTION_PREFIX = /^\)\]\}',?\n/;
 const JSON_START = /^\[|^\{(?!\{)/;
 const JSON_ENDS = {
     '[': /]$/,
-    '{': /}$/
+    '{': /}$/,
 };
 
 function isJsonLike(str) {
@@ -28,10 +28,9 @@ function getHeaderFunction(headers) {
         if (splitValue.length < 2) {
             return;
         }
-        keyedHeaders[splitValue[0].trim()] =
-			splitValue[1].trim();
+        keyedHeaders[splitValue[0].trim()] = splitValue[1].trim();
     });
-    return function(key) {
+    return function (key) {
         return keyedHeaders[key] || null;
     };
 }
@@ -45,7 +44,7 @@ function defaultHttpResponseTransform(data, headers) {
         return data;
     }
     const contentType = headers('Content-Type');
-    if (contentType && contentType.indexOf(APPLICATION_JSON) === 0 || isJsonLike(tempData)) {
+    if ((contentType && contentType.indexOf(APPLICATION_JSON) === 0) || isJsonLike(tempData)) {
         data = fromJson(tempData);
     }
     return data;
@@ -56,7 +55,7 @@ export default class Http {
         GM_xmlhttpRequest({
             method: 'GET',
             url: url,
-            onload: function(gmResponse) {
+            onload: function (gmResponse) {
                 const headers = getHeaderFunction(gmResponse.responseHeaders.split('\n'));
                 let responseData = gmResponse.response;
 
@@ -65,12 +64,12 @@ export default class Http {
                     data: responseData,
                     status: gmResponse.status,
                     headers: headers,
-                    statusText: gmResponse.statusText
+                    statusText: gmResponse.statusText,
                 };
 
                 callback(true, response);
             },
-            onerror: function(gmResponse) {
+            onerror: function (gmResponse) {
                 const headers = getHeaderFunction(gmResponse.responseHeaders.split('\n'));
                 let responseData = gmResponse.response;
 
@@ -79,11 +78,11 @@ export default class Http {
                     data: responseData,
                     status: gmResponse.status,
                     headers: headers,
-                    statusText: gmResponse.statusText
+                    statusText: gmResponse.statusText,
                 };
 
                 callback(false, response);
-            }
+            },
         });
     }
 }
