@@ -12,15 +12,15 @@ const production = !process.env.ROLLUP_WATCH;
 fs.mkdir('dist/', { recursive: true }, () => null);
 
 export default {
-    input: 'assets/js/app.js',
+    input: 'src/app.js',
     output: {
         file: 'dist/bundle.js',
         format: 'iife', // immediately-invoked function expression — suitable for <script> tags
         sourcemap: true,
     },
     plugins: [
-        resolve({ browser: true }), // tells Rollup how to find date-fns in node_modules
-        commonjs(), // converts date-fns to ES modules
+        resolve({ browser: true }), // tells Rollup how to find jquery in node_modules
+        commonjs(), // converts jquery to ES modules
         production && terser(), // minify, but only in production
         metablock({
             file: './meta.json',

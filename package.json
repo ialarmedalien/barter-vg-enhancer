@@ -1,39 +1,45 @@
 {
-  "name": "barter-vg-enhancer",
-  "version": "0.5.4",
-  "description": "Summarizes and compares all attributes in an offer for easy comparison of offer value",
-  "main": "app.js",
-  "scripts": {
-    "build": "rollup -c",
-    "watch": "rollup -c -w",
-    "eslint": "eslint --fix '**/*.js'",
-    "eslint-check": "eslint '**/*.js'",
-    "prettier": "prettier --write '**/*.js'",
-    "print-userscript-banner": "node scripts/print-userscript-banner.js",
-    "sassv": "sass --version",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ialarmedalien/barter-vg-enhancer.git"
-  },
-  "author": "ialarmedalien; Alexander Krivács Schrøder",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/ialarmedalien/barter-vg-enhancer/issues"
-  },
-  "homepage": "https://github.com/ialarmedalien/barter-vg-enhancer#readme",
-  "dependencies": {
-    "jquery": "^3.6.3"
-  },
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "^24.0.1",
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.4.0",
-    "eslint": "^8.35.0",
-    "eslint-config-prettier": "^8.6.0",
-    "prettier": "^2.8.4",
-    "rollup": "^2.79.1",
-    "rollup-plugin-userscript-metablock": "^0.3.2"
-  }
+    "name": "barter-vg-enhancer",
+    "version": "0.5.4",
+    "description": "Summarizes and compares all attributes in an offer for easy comparison of offer value",
+    "type": "module",
+    "main": "app.js",
+    "scripts": {
+        "build": "rollup -c",
+        "dev": "rollup -c -w",
+        "watch": "rollup -c -w",
+        "eslint": "eslint --fix '**/*.js'",
+        "eslint-check": "eslint '**/*.js'",
+        "prettier": "prettier --write '**/*.js'",
+        "print-userscript-banner": "node scripts/print-userscript-banner.js",
+        "sassv": "sass --version",
+        "test": "jasmine"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ialarmedalien/barter-vg-enhancer.git"
+    },
+    "author": "ialarmedalien; Alexander Krivács Schrøder",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/ialarmedalien/barter-vg-enhancer/issues"
+    },
+    "homepage": "https://github.com/ialarmedalien/barter-vg-enhancer#readme",
+    "dependencies": {
+        "datatables.net-dt": "^1.13.3",
+        "jquery": "^3.6.3"
+    },
+    "devDependencies": {
+        "@rollup/plugin-commonjs": "^24.0.1",
+        "@rollup/plugin-json": "^6.0.0",
+        "@rollup/plugin-node-resolve": "^15.0.1",
+        "@rollup/plugin-terser": "^0.4.0",
+        "eslint": "^8.35.0",
+        "eslint-config-prettier": "^8.6.0",
+        "jasmine": "^4.5.0",
+        "jasmine-ajax": "^4.0.0",
+        "prettier": "^2.8.4",
+        "rollup": "^2.79.1",
+        "rollup-plugin-userscript-metablock": "^0.3.2"
+    }
 }
