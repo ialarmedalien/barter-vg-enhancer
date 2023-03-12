@@ -1,0 +1,18 @@
+{
+    "namespace": "github.com/ialarmedalien",
+    "copyright": "2023, ialarmedalien (https://github.com/ialarmedalien)",
+    "match": ["https://barter.vg/*"],
+    "grant": [
+        "GM_getValue",
+        "GM_setValue",
+        "GM_deleteValue",
+        "GM_listValues",
+        "GM_xmlhttpRequest",
+        "GM_getResourceText"
+    ],
+    "run-at": "document-body",
+    "connect": ["barter.vg", "store.steampowered.com", "api.isthereanydeal.com"],
+    "require": ["https://code.jquery.com/jquery-3.6.3.min.js"],
+    "resource": [""],
+    "noframes": true
+}

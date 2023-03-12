@@ -1,0 +1,49 @@
+env:
+    browser: true
+    es6: true
+    greasemonkey: true
+    jquery: true
+    jasmine: true
+    node: true
+extends:
+    - 'eslint:recommended'
+    - prettier
+parserOptions:
+    sourceType: module
+    ecmaVersion: 2018
+root: true
+rules:
+    strict:
+        - error
+        - function
+    no-console:
+        - error
+        - allow:
+              - warn
+              - error
+    require-await:
+        - error
+    no-confusing-arrow:
+        - error
+    no-const-assign:
+        - error
+    no-duplicate-imports:
+        - error
+    no-useless-computed-key:
+        - error
+    no-useless-rename:
+        - error
+    no-var:
+        - error
+    prefer-arrow-callback:
+        - warn
+    prefer-const:
+        - error
+    prefer-rest-params:
+        - warn
+    prefer-spread:
+        - warn
+    indent:
+        - error
+        - 4
+        - SwitchCase: 1
