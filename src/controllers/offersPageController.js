@@ -7,6 +7,7 @@ import SteamClient from '../modules/steam';
 import variables from '../modules/templates';
 import ItadClient from '../modules/itad';
 import parseHTML from '../modules/util';
+import getBarterStoreIcon from '../modules/shops';
 
 function getGamesTradeSummaryHtml(gameStats, idPrefix) {
     const tradeSummary = format(variables.html.tradeSummary, {
@@ -82,6 +83,10 @@ function addGameDetails(allGames) {
     return new Promise((resolve) => resolve());
 }
 
+function iconImage(storeName, iconFile) {
+    return `<img src="https://bartervg.com/imgs/ico/${iconFile}" alt="${storeName}" class="price-link" />`;
+}
+
 export function calculateGamePriceStats(games) {
     const stats = {
         to: {
@@ -104,13 +109,22 @@ export function calculateGamePriceStats(games) {
     for (const game of Object.values(games.all)) {
         stats[game.trade_direction].nGames++;
         if ('steam_price' in game) {
-            game.steamPriceEl.innerHTML = 'Not available';
+            game.steamPriceEl.innerHTML = `${iconImage(
+                'Steam',
+                'steam.png'
+            )}&nbsp;<abbr title="not available">N/A</abbr>`;
             try {
-                let priceString = `${game.steam_price.price} ${game.steam_price.currency}`;
-                if (game.steam_price.price === 0) {
-                    priceString = 'Free';
-                    game.steamPriceEl.setAttribute('style', 'color: green');
-                } else if (game.steam_price.cut !== 0) {
+                let priceString = `<a href="https://store.steampowered.com/app/${
+                    game.sku
+                }/" title="${game.title} on Steam">${iconImage('Steam', 'steam.png')}&nbsp;${
+                    game.steam_price.price === 0 ? 'Free' : game.steam_price.price
+                }&nbsp;${game.steam_price.currency}</a>`;
+
+                // `${game.steam_price.price} ${game.steam_price.currency}`;
+                // if (game.steam_price.price === 0) {
+                //     priceString = 'Free';
+                //     game.steamPriceEl.setAttribute('style', 'color: green');
+                if (game.steam_price.cut !== 0) {
                     priceString += ` (${game.steam_price.cut}% off)`;
                 }
                 game.steamPriceEl.innerHTML = priceString;
@@ -126,11 +140,24 @@ export function calculateGamePriceStats(games) {
         }
 
         for (const type of ['itad', 'lowest']) {
-            game[`${type}PriceEl`].innerHTML = 'Not available';
+            game[
+                `${type}PriceEl`
+            ].innerHTML = `ITAD: <a href="https://isthereanydeal.com/game/${game.itad_id}/info/">N/A</a>`;
             try {
-                game[`${type}PriceEl`].innerHTML =
-                    `${game[`${type}_price`].shop.name}: ` +
-                    `${game[`${type}_price`].price.toFixed(2)} ${game[`${type}_price`].currency}`;
+                const storeIcon = getBarterStoreIcon(game[`${type}_price`].shop.id);
+                game[`${type}PriceEl`].innerHTML = `<a href="https://isthereanydeal.com/game/${
+                    game.itad_id
+                }/info/" title="Best ${type === 'itad' ? 'current' : 'historical'} price: ${game[
+                    `${type}_price`
+                ].price.toFixed(2)} at ${game[`${type}_price`].shop.name}">${iconImage(
+                    game[`${type}_price`].shop.name,
+                    storeIcon
+                )}&nbsp;${game[`${type}_price`].price.toFixed(2)}&nbsp;${
+                    game[`${type}_price`].currency
+                }</a>`;
+
+                // `${game[`${type}_price`].shop.name}: ` +
+                // `${game[`${type}_price`].price.toFixed(2)} ${game[`${type}_price`].currency}`;
                 stats[game.trade_direction][`${type}Total`] += game[`${type}_price`].price;
                 if (!currency) {
                     currency = game[`${type}_price`].currency;

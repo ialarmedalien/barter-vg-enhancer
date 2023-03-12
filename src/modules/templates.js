@@ -10,6 +10,7 @@ const variables = {
     text-align: right;
     font-size: 0.8rem;
     line-height: 1.35;
+    margin: 0.25rem 0.5rem;
 }
 .bve-trade-summary {
     width: 100%;
@@ -25,6 +26,9 @@ const variables = {
 }
 .matchcol li {
     padding: 0.4rem 0;
+}
+.tradables {
+    padding: 0;
 }
 .tradables li {
     display: flex;
@@ -54,6 +58,9 @@ const variables = {
 .steam_price, .itad_price, .lowest_price {
     padding: 0.2rem;
     margin: 0.2rem;
+}
+.tradables li:last-child {
+    border-bottom: 0;
 }
 `,
     },

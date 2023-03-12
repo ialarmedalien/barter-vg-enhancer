@@ -59,8 +59,7 @@ function addSteamPrice(game) {
 
 function addItadPrice(game) {
     if ('itad_id' in game) {
-        game.itadPriceHtml =
-            'ITAD: <a href="https://isthereanydeal.com/game/' + game.itad_id + '/info/">N/A</a>';
+        game.itadPriceHtml = `ITAD: <a href="https://isthereanydeal.com/game/${game.itad_id}/info/">N/A</a>`;
         if ('itad_price' in game && game.itad_price !== null) {
             try {
                 const storeIcon = getBarterStoreIcon(game.itad_price.shop.id);
