@@ -9,7 +9,7 @@
 // @connect     api.isthereanydeal.com
 // @require     https://code.jquery.com/jquery-3.6.3.min.js
 // @noframes
-// @version     0.5.4
+// @version     0.6.0
 // @homepage    https://github.com/ialarmedalien/barter-vg-enhancer#readme
 // @author      ialarmedalien; Alexander Krivács Schrøder
 // @license     GPL-3.0
