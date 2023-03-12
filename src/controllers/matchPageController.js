@@ -14,7 +14,8 @@ function generatePriceRatioElements(game) {
         `<div class="game-details">` +
         `<span class="ratio" title="Game tradability index">{1}</span>` +
         `<span class="bundled" title="how many times the game has been bundled">{2}</span></div>` +
-        `<div class="price-details"><span class="steam_price"></span>` +
+        `<div class="price-details">` +
+        `<span class="steam_price"></span>` +
         `<span class="itad_price"></span>` +
         `<span class="lowest_price"></span>` +
         `</div>`;
@@ -26,7 +27,7 @@ function generatePriceRatioElements(game) {
 
     const templateData = {
         1: game.ratios.index,
-        2: `${game.bundles_all}${BUNDLE_SYMBOL}`,
+        2: `${game.bundles_all}&nbsp;${BUNDLE_SYMBOL}`,
         3: game.item_id,
     };
     game.price_ratio_data = format(linkTemplate, templateData);

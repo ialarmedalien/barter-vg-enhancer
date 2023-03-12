@@ -11,15 +11,15 @@ import getBarterStoreIcon from '../modules/shops';
 
 function getGamesTradeSummaryHtml(gameStats, idPrefix) {
     const tradeSummary = format(variables.html.tradeSummary, {
+        0: idPrefix,
         1: gameStats.gamesInBundles,
+        2: gameStats.totalBundles,
         4: gameStats.averageReviewScore,
         5: gameStats.averageWeightedReviewScore,
-        6: gameStats.ratios.index,
-        8: gameStats.totalBundles,
+        6: gameStats.voteCount,
+        7: (Math.log(gameStats.voteCount) / Math.log(2)).toFixed(2),
+        8: gameStats.ratios.index,
         9: gameStats.ratios.real,
-        10: gameStats.voteCount,
-        11: (Math.log(gameStats.voteCount) / Math.log(2)).toFixed(2),
-        12: idPrefix,
     });
     return tradeSummary;
 }
@@ -36,15 +36,20 @@ function addPageElements(allGames) {
         addElementToGame(game);
     }
     const gameStats = {};
-    for (const type of ['from', 'to']) {
-        gameStats[type] = calculateGameStats(gameType[type]);
+    for (const direction of ['to', 'from']) {
+        gameStats[direction] = calculateGameStats(gameType[direction]);
     }
 
-    const fromTradeSummary = getGamesTradeSummaryHtml(gameStats.from, 'offered');
-    tradables[0].appendChild(parseHTML(fromTradeSummary)[0]);
+    const fromTradeSummary = getGamesTradeSummaryHtml(gameStats.from, 'from');
+    const fromTableLi = document.createElement('li');
+    fromTableLi.innerHTML = fromTradeSummary;
+    tradables[0].querySelector('.tradables_items_list').appendChild(fromTableLi);
 
-    const toTradeSummary = getGamesTradeSummaryHtml(gameStats.to, 'requested');
-    tradables[1].prepend(parseHTML(toTradeSummary)[0]);
+    const toTradeSummary = getGamesTradeSummaryHtml(gameStats.to, 'to');
+    const toTableLi = document.createElement('li');
+    toTableLi.innerHTML = toTradeSummary;
+    tradables[1].querySelector('.tradables_items_list').prepend(toTableLi);
+
     return addGameDetails(allGames);
 }
 
@@ -65,7 +70,7 @@ function addGameDetails(allGames) {
         const gameElement = game.element;
         const gameDetailHtml = parseHTML(
             format(variables.html.gameDetails, {
-                0: ratios.summary,
+                0: `${ratios.index} (${ratios.real})`,
                 1:
                     'bundles_all' in game
                         ? `${game.bundles_all} (${game.bundles_available} current)`
@@ -174,30 +179,25 @@ export function calculateGamePriceStats(games) {
 
 function populateTotalStats(stats) {
     const { currency } = stats;
-    const el = {
-        to: {
-            total: '#requested_total_steam',
-            itad: '#requested_total_itad',
-            average: '#requested_average_steam',
-        },
-        from: {
-            total: '#offered_total_steam',
-            itad: '#offered_total_itad',
-            average: '#offered_average_steam',
-        },
-    };
-    for (const type of ['to', 'from']) {
-        document.querySelector(el[type].total).innerHTML =
-            `${stats[type].steamTotal.toFixed(2)} ${currency} ` +
-            `(${stats[type].steamTotalOld.toFixed(2)}  ${currency})`;
+    for (const direction of ['to', 'from']) {
+        document.querySelector(`#${direction}_total_steam`).innerHTML =
+            `${stats[direction].steamTotal.toFixed(2)} ${currency} ` +
+            `(${stats[direction].steamTotalOld.toFixed(2)}  ${currency})`;
 
-        document.querySelector(el[type].itad).innerHTML = `${stats[type].itadTotal.toFixed(
-            2
-        )} ${currency}`;
+        document.querySelector(`#${direction}_total_itad`).innerHTML = `${stats[
+            direction
+        ].itadTotal.toFixed(2)} ${currency}`;
 
-        document.querySelector(el[type].average).innerHTML =
-            `${(stats[type].steamTotal / stats[type].nGames).toFixed(2)} ${currency} ` +
-            `(${(stats[type].steamTotalOld / stats[type].nGames).toFixed(2)} ${currency})`;
+        // average price
+        document.querySelector(`#${direction}_average_steam`).innerHTML =
+            `${(stats[direction].steamTotal / stats[direction].nGames).toFixed(2)} ${currency} ` +
+            `(${(stats[direction].steamTotalOld / stats[direction].nGames).toFixed(
+                2
+            )} ${currency})`;
+
+        document.querySelector(`#${direction}_average_itad`).innerHTML = `${(
+            stats[direction].itadTotal / stats[direction].nGames
+        ).toFixed(2)} ${currency}`;
     }
 }
 
@@ -208,12 +208,12 @@ function initGameData(respData) {
         from: [],
         all: {},
     };
-    for (const type of ['to', 'from']) {
-        for (const game of Object.values(offerData.items[type])) {
+    for (const direction of ['to', 'from']) {
+        for (const game of Object.values(offerData.items[direction])) {
             game.platform_id = game.platform;
-            game.trade_direction = type;
+            game.trade_direction = direction;
             games.all[game.item_id] = game;
-            games[type].push(game.item_id);
+            games[direction].push(game.item_id);
         }
     }
     return games;
@@ -226,6 +226,7 @@ export default class OffersPageController {
                 /^https:\/\/barter\.vg\/u\/.+\/o\/.+\/$/,
                 this,
                 this.prototype.index,
+                // don't run on deal creation pages
                 () => $('.statusCurrent').text() !== 'Creating...'
             ),
         ];
@@ -234,8 +235,12 @@ export default class OffersPageController {
     async index() {
         const response = await Http.getPromise(`${window.location.href}json`);
         if (response.status !== 200) {
-            throw new Error('Oh shit!');
+            throw new Error('Could not retrieve JSON data for this offer');
         }
+        if ('error' in response.data || ('success' in response.data && !response.data.success)) {
+            throw new Error(response.data.error);
+        }
+
         const games = initGameData(response.data);
         await Promise.all([
             addPageElements(games.all),

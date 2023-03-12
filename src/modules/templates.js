@@ -67,11 +67,11 @@ const variables = {
     html: {
         gameDetails:
             `<div class="bve-game-details">` +
-            `    <div>H:W Ratio: <span class="bve-game-details__trade-ratio">{0}</span></div>` +
+            `    <div>Tradability: <span class="bve-game-details__trade-ratio">{0}</span></div>` +
             `    <div>Bundles: <span class="bve-game-details__trade-ratio">{1}</span></div>` +
-            `    <div>Steam: <span class="bve-game-details__steam-price">Loading...</span></div>` +
-            `    <div>ITAD: <span class="bve-game-details__itad-price">Loading...</span></div>` +
-            `    <div>Lowest: <span class="bve-game-details__lowest-price">Loading...</span></div>` +
+            `    <div title="Current price on Steam">Steam: <span class="bve-game-details__steam-price">Loading...</span></div>` +
+            `    <div title="Best price on IsThereAnyDeal">ITAD: <span class="bve-game-details__itad-price">Loading...</span></div>` +
+            `    <div title="Lowest ever price on IsThereAnyDeal">Lowest: <span class="bve-game-details__lowest-price">Loading...</span></div>` +
             `</div>`,
         tradeSummary:
             `<table class="bve-trade-summary">` +
@@ -82,7 +82,7 @@ const variables = {
             `    </tr>` +
             `    <tr>` +
             `        <th>Total bundles</th>` +
-            `        <td>{8}</td>` +
+            `        <td>{2}</td>` +
             `    </tr>` +
             `    <tr>` +
             `        <th>Average review score` +
@@ -97,23 +97,27 @@ const variables = {
             `            &quot;twice as popular&quot;, and -1 means &quot;half as popular&quot;."` +
             `             class="bve-information-highlight">(log<sub>2</sub>)</span>` +
             `        </th>` +
-            `        <td>{10} ({11})</td>` +
+            `        <td>{6} ({7})</td>` +
             `    </tr>` +
             `    <tr>` +
             `        <th>Tradability (H : W)</th>` +
-            `        <td>{6} ({9})</td>` +
+            `        <td>{8} ({9})</td>` +
             `    </tr>` +
             `    <tr>` +
             `        <th>Total price on Steam (ignoring any active discounts)</th>` +
-            `        <td id="{12}_total_steam">Loading...</td>` +
+            `        <td id="{0}_total_steam">Loading...</td>` +
             `    </tr>` +
             `    <tr>` +
             `        <th>Average price per game on Steam (ignoring any active discounts)</th>` +
-            `        <td id="{12}_average_steam">Loading...</td>` +
+            `        <td id="{0}_average_steam">Loading...</td>` +
             `    </tr>` +
             `    <tr>` +
             `        <th>Best price on ITAD</th>` +
-            `        <td id="{12}_total_itad">Loading...</td>` +
+            `        <td id="{0}_total_itad">Loading...</td>` +
+            `    </tr>` +
+            `    <tr>` +
+            `        <th>Average price on ITAD</th>` +
+            `        <td id="{0}_average_itad">Loading...</td>` +
             `    </tr>` +
             `</table>`,
     },
