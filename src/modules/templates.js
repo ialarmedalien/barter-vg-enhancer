@@ -34,12 +34,23 @@ const variables = {
     display: flex;
     border-bottom: 1px dotted dodgerblue;
 }
+.tradables tr[data-item-id] {
+    border-bottom: 1px dotted dodgerblue;
+}
+.tradables .r_p span, .tradables .r_m span, .tradables .r_n span {
+    line-height: .25em;
+    line-height: 0.8rem;
+}
+.tradables .r_p, .tradables .r_p a {
+    font-size: 1rem;
+    line-height: 1rem;
+}
 .tradables_info {
     max-width: unset;
     flex: 380px 1;
     display: block;
 }
-.price-details img {
+.bve-game-details img, .price-details img {
     max-height: 0.8rem;
     max-width: 0.8rem;
 }
@@ -69,9 +80,9 @@ const variables = {
             `<div class="bve-game-details">` +
             `    <div>Tradability: <span class="bve-game-details__trade-ratio">{0}</span></div>` +
             `    <div>Bundles: <span class="bve-game-details__trade-ratio">{1}</span></div>` +
-            `    <div title="Current price on Steam">Steam: <span class="bve-game-details__steam-price">Loading...</span></div>` +
-            `    <div title="Best price on IsThereAnyDeal">ITAD: <span class="bve-game-details__itad-price">Loading...</span></div>` +
-            `    <div title="Lowest ever price on IsThereAnyDeal">Lowest: <span class="bve-game-details__lowest-price">Loading...</span></div>` +
+            `    <div><span class="bve-game-details__steam-price">Loading...</span></div>` +
+            `    <div><span class="bve-game-details__itad-price">Loading...</span></div>` +
+            `    <div><span class="bve-game-details__lowest-price">Loading...</span></div>` +
             `</div>`,
         tradeSummary:
             `<table class="bve-trade-summary">` +
@@ -107,7 +118,7 @@ const variables = {
             `        <th>Total price on Steam (ignoring any active discounts)</th>` +
             `        <td id="{0}_total_steam">Loading...</td>` +
             `    </tr>` +
-            `    <tr>` +
+            `    <tr class="average">` +
             `        <th>Average price per game on Steam (ignoring any active discounts)</th>` +
             `        <td id="{0}_average_steam">Loading...</td>` +
             `    </tr>` +
@@ -115,7 +126,7 @@ const variables = {
             `        <th>Best price on ITAD</th>` +
             `        <td id="{0}_total_itad">Loading...</td>` +
             `    </tr>` +
-            `    <tr>` +
+            `    <tr class="average">` +
             `        <th>Average price on ITAD</th>` +
             `        <td id="{0}_average_itad">Loading...</td>` +
             `    </tr>` +

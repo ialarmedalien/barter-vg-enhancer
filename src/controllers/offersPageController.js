@@ -9,17 +9,17 @@ import ItadClient from '../modules/itad';
 import parseHTML from '../modules/util';
 import getBarterStoreIcon from '../modules/shops';
 
-function getGamesTradeSummaryHtml(gameStats, idPrefix) {
+function getGamesTradeSummaryHtml(gameStats, direction) {
     const tradeSummary = format(variables.html.tradeSummary, {
-        0: idPrefix,
-        1: gameStats.gamesInBundles,
-        2: gameStats.totalBundles,
-        4: gameStats.averageReviewScore,
-        5: gameStats.averageWeightedReviewScore,
-        6: gameStats.voteCount,
-        7: (Math.log(gameStats.voteCount) / Math.log(2)).toFixed(2),
-        8: gameStats.ratios.index,
-        9: gameStats.ratios.real,
+        0: direction,
+        1: gameStats[direction].gamesInBundles,
+        2: gameStats[direction].totalBundles,
+        4: gameStats[direction].averageReviewScore,
+        5: gameStats[direction].averageWeightedReviewScore,
+        6: gameStats[direction].voteCount,
+        7: (Math.log(gameStats[direction].voteCount) / Math.log(2)).toFixed(2),
+        8: gameStats[direction].ratios.index,
+        9: gameStats[direction].ratios.real,
     });
     return tradeSummary;
 }
@@ -38,18 +38,19 @@ function addPageElements(allGames) {
     const gameStats = {};
     for (const direction of ['to', 'from']) {
         gameStats[direction] = calculateGameStats(gameType[direction]);
+        const tradeSummary = getGamesTradeSummaryHtml(gameStats, direction);
+        const tableLi = document.createElement('li');
+        tableLi.innerHTML = tradeSummary;
+        if (gameStats[direction].games === 1) {
+            // remove the average rows from the table
+            tableLi.querySelectorAll('.average').forEach((el) => el.remove());
+        }
+        if (direction === 'from') {
+            tradables[0].querySelector('.tradables_items_list').appendChild(tableLi);
+        } else {
+            tradables[1].querySelector('.tradables_items_list').prepend(tableLi);
+        }
     }
-
-    const fromTradeSummary = getGamesTradeSummaryHtml(gameStats.from, 'from');
-    const fromTableLi = document.createElement('li');
-    fromTableLi.innerHTML = fromTradeSummary;
-    tradables[0].querySelector('.tradables_items_list').appendChild(fromTableLi);
-
-    const toTradeSummary = getGamesTradeSummaryHtml(gameStats.to, 'to');
-    const toTableLi = document.createElement('li');
-    toTableLi.innerHTML = toTradeSummary;
-    tradables[1].querySelector('.tradables_items_list').prepend(toTableLi);
-
     return addGameDetails(allGames);
 }
 
@@ -95,14 +96,14 @@ function iconImage(storeName, iconFile) {
 export function calculateGamePriceStats(games) {
     const stats = {
         to: {
-            nGames: 0,
+            nGames: games.to.length,
             steamTotal: 0,
             steamTotalOld: 0,
             itadTotal: 0,
             lowestTotal: 0,
         },
         from: {
-            nGames: 0,
+            nGames: games.from.length,
             steamTotal: 0,
             steamTotalOld: 0,
             itadTotal: 0,
@@ -112,7 +113,7 @@ export function calculateGamePriceStats(games) {
 
     let currency;
     for (const game of Object.values(games.all)) {
-        stats[game.trade_direction].nGames++;
+        // steam prices
         if ('steam_price' in game) {
             game.steamPriceEl.innerHTML = `${iconImage(
                 'Steam',
@@ -125,10 +126,6 @@ export function calculateGamePriceStats(games) {
                     game.steam_price.price === 0 ? 'Free' : game.steam_price.price
                 }&nbsp;${game.steam_price.currency}</a>`;
 
-                // `${game.steam_price.price} ${game.steam_price.currency}`;
-                // if (game.steam_price.price === 0) {
-                //     priceString = 'Free';
-                //     game.steamPriceEl.setAttribute('style', 'color: green');
                 if (game.steam_price.cut !== 0) {
                     priceString += ` (${game.steam_price.cut}% off)`;
                 }
@@ -145,31 +142,29 @@ export function calculateGamePriceStats(games) {
         }
 
         for (const type of ['itad', 'lowest']) {
-            game[
-                `${type}PriceEl`
-            ].innerHTML = `ITAD: <a href="https://isthereanydeal.com/game/${game.itad_id}/info/">N/A</a>`;
-            try {
-                const storeIcon = getBarterStoreIcon(game[`${type}_price`].shop.id);
-                game[`${type}PriceEl`].innerHTML = `<a href="https://isthereanydeal.com/game/${
-                    game.itad_id
-                }/info/" title="Best ${type === 'itad' ? 'current' : 'historical'} price: ${game[
-                    `${type}_price`
-                ].price.toFixed(2)} at ${game[`${type}_price`].shop.name}">${iconImage(
-                    game[`${type}_price`].shop.name,
-                    storeIcon
-                )}&nbsp;${game[`${type}_price`].price.toFixed(2)}&nbsp;${
-                    game[`${type}_price`].currency
-                }</a>`;
-
-                // `${game[`${type}_price`].shop.name}: ` +
-                // `${game[`${type}_price`].price.toFixed(2)} ${game[`${type}_price`].currency}`;
-                stats[game.trade_direction][`${type}Total`] += game[`${type}_price`].price;
-                if (!currency) {
-                    currency = game[`${type}_price`].currency;
+            if (`${type}_price` in game) {
+                game[`${type}PriceEl`].innerHTML = `${
+                    type === 'itad' ? 'ITAD' : 'Lowest'
+                }: <a href="https://isthereanydeal.com/game/${game.itad_id}/info/">N/A</a>`;
+                try {
+                    const storeIcon = getBarterStoreIcon(game[`${type}_price`].shop.id);
+                    game[`${type}PriceEl`].innerHTML = `<a href="https://isthereanydeal.com/game/${
+                        game.itad_id
+                    }/info/" title="Best ${
+                        type === 'itad' ? 'current' : 'historical'
+                    } price: ${game[`${type}_price`].price.toFixed(2)} at ${
+                        game[`${type}_price`].shop.name
+                    }">${iconImage(game[`${type}_price`].shop.name, storeIcon)}&nbsp;${game[
+                        `${type}_price`
+                    ].price.toFixed(2)}&nbsp;${game[`${type}_price`].currency}</a>`;
+                    stats[game.trade_direction][`${type}Total`] += game[`${type}_price`].price;
+                    if (!currency) {
+                        currency = game[`${type}_price`].currency;
+                    }
+                } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.log({ item_id: game.item_id, ...game[`${type}_price`] });
                 }
-            } catch (e) {
-                // eslint-disable-next-line no-console
-                console.log({ item_id: game.item_id, ...game[`${type}_price`] });
             }
         }
     }
@@ -188,16 +183,20 @@ function populateTotalStats(stats) {
             direction
         ].itadTotal.toFixed(2)} ${currency}`;
 
-        // average price
-        document.querySelector(`#${direction}_average_steam`).innerHTML =
-            `${(stats[direction].steamTotal / stats[direction].nGames).toFixed(2)} ${currency} ` +
-            `(${(stats[direction].steamTotalOld / stats[direction].nGames).toFixed(
-                2
-            )} ${currency})`;
+        if (stats[direction].nGames !== 1) {
+            // average price
+            document.querySelector(`#${direction}_average_steam`).innerHTML =
+                `${(stats[direction].steamTotal / stats[direction].nGames).toFixed(
+                    2
+                )} ${currency} ` +
+                `(${(stats[direction].steamTotalOld / stats[direction].nGames).toFixed(
+                    2
+                )} ${currency})`;
 
-        document.querySelector(`#${direction}_average_itad`).innerHTML = `${(
-            stats[direction].itadTotal / stats[direction].nGames
-        ).toFixed(2)} ${currency}`;
+            document.querySelector(`#${direction}_average_itad`).innerHTML = `${(
+                stats[direction].itadTotal / stats[direction].nGames
+            ).toFixed(2)} ${currency}`;
+        }
     }
 }
 
@@ -227,7 +226,9 @@ export default class OffersPageController {
                 this,
                 this.prototype.index,
                 // don't run on deal creation pages
-                () => $('.statusCurrent').text() !== 'Creating...'
+                () =>
+                    document.querySelector('.statusCurrent') &&
+                    document.querySelector('.statusCurrent').textContent !== 'Creating...'
             ),
         ];
     }

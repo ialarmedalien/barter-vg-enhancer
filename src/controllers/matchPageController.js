@@ -1,148 +1,9 @@
 import Http from '../modules/http.js';
 import { Route } from '../modules/router.js';
-import Ratios from '../modules/ratios.js';
 import ItadClient from '../modules/itad.js';
 import SteamClient from '../modules/steam.js';
-import format from '../modules/format.js';
-import parseHTML from '../modules/util.js';
-import getBarterStoreIcon from '../modules/shops.js';
+import { addPriceElements, addPriceData } from '../modules/dom.js';
 const GAME_LINK = /https:\/\/barter.vg\/i\/(\d+)\//;
-const BUNDLE_SYMBOL = '&#x26C1;';
-
-function generatePriceRatioElements(game) {
-    const linkTemplate =
-        `<div class="game-details">` +
-        `<span class="ratio" title="Game tradability index">{1}</span>` +
-        `<span class="bundled" title="how many times the game has been bundled">{2}</span></div>` +
-        `<div class="price-details">` +
-        `<span class="steam_price"></span>` +
-        `<span class="itad_price"></span>` +
-        `<span class="lowest_price"></span>` +
-        `</div>`;
-
-    // does it have the ratios calculated?
-    if (!('ratios' in game)) {
-        game.ratios = Ratios.getTradeRatios(game);
-    }
-
-    const templateData = {
-        1: game.ratios.index,
-        2: `${game.bundles_all}&nbsp;${BUNDLE_SYMBOL}`,
-        3: game.item_id,
-    };
-    game.price_ratio_data = format(linkTemplate, templateData);
-    return game.price_ratio_data;
-}
-
-function iconImage(storeName, iconFile) {
-    return `<img src="https://bartervg.com/imgs/ico/${iconFile}" alt="${storeName}" class="price-link" />`;
-}
-
-function addSteamPrice(game) {
-    game.steamPriceHtml = `${iconImage(
-        'Steam',
-        'steam.png'
-    )}&nbsp;<abbr title="not available">N/A</abbr>`;
-    if ('steam_price' in game && game.steam_price !== null) {
-        try {
-            game.steamPriceHtml = `<a href="https://store.steampowered.com/app/${
-                game.sku
-            }/" title="${game.title} on Steam">${iconImage('Steam', 'steam.png')}&nbsp;${
-                game.steam_price.price
-            }</a>`;
-        } catch (e) {
-            // eslint-disable-next-line no-console
-            console.log({ item_id: game.item_id, steam: game.steam_price });
-        }
-    }
-    addPriceToElement(game, 'steam');
-}
-
-function addItadPrice(game) {
-    if ('itad_id' in game) {
-        game.itadPriceHtml = `ITAD: <a href="https://isthereanydeal.com/game/${game.itad_id}/info/">N/A</a>`;
-        if ('itad_price' in game && game.itad_price !== null) {
-            try {
-                const storeIcon = getBarterStoreIcon(game.itad_price.shop.id);
-                game.itadPriceHtml = `<a href="https://isthereanydeal.com/game/${
-                    game.itad_id
-                }/info/" title="Best current price: ${game.itad_price.price.toFixed(2)} at ${
-                    game.itad_price.shop.name
-                }">${iconImage(
-                    game.itad_price.shop.name,
-                    storeIcon
-                )}&nbsp;${game.itad_price.price.toFixed(2)}</a>`;
-            } catch (e) {
-                // eslint-disable-next-line no-console
-                console.log({ item_id: game.item_id, itad: game.itad_price });
-            }
-        }
-        addPriceToElement(game, 'itad');
-    }
-}
-
-function addLowestPrice(game) {
-    if ('itad_id' in game) {
-        game.lowestPriceHtml =
-            'Best: <a href="https://isthereanydeal.com/game/' + game.itad_id + '/info/">N/A</a>';
-        if ('lowest_price' in game && game.lowest_price !== null) {
-            try {
-                const storeIcon = getBarterStoreIcon(game.lowest_price.shop.id);
-                game.lowestPriceHtml = `<a href="https://isthereanydeal.com/game/${
-                    game.itad_id
-                }/info/" title="Best historical price: ${game.lowest_price.price.toFixed(2)} at ${
-                    game.lowest_price.shop.name
-                }">${iconImage(
-                    game.lowest_price.shop.name,
-                    storeIcon
-                )}&nbsp;${game.lowest_price.price.toFixed(2)}</a>`;
-            } catch (e) {
-                // eslint-disable-next-line no-console
-                console.log({ item_id: game.item_id, itad: game.lowest_price });
-            }
-        }
-        addPriceToElement(game, 'lowest');
-    }
-}
-
-function addPriceToElement(game, type) {
-    for (const el of game.elArray) {
-        el.querySelector(`.${type}_price`).innerHTML = game[`${type}PriceHtml`];
-    }
-}
-
-function addPriceData(allGames, type) {
-    const fnMap = {
-        steam: addSteamPrice,
-        itad: addItadPrice,
-        lowest: addLowestPrice,
-    };
-    Object.values(allGames).forEach((game) => {
-        fnMap[type](game);
-    });
-}
-
-function addPriceElements(allGames) {
-    Object.values(allGames).forEach((game) => {
-        const priceRatioEls =
-            'price_ratio_data' in game ? game.price_ratio_data : generatePriceRatioElements(game);
-        const htmlString = priceRatioEls;
-        for (const gameEl of game.elArray) {
-            const newElements = parseHTML(htmlString);
-            newElements.forEach((el) => {
-                const smt = el.querySelector('.showMoreToggle');
-                if (smt) {
-                    smt.parentNode.insertBefore(el, smt);
-                } else {
-                    gameEl.appendChild(el);
-                }
-            });
-        }
-    });
-    return new Promise((resolve) => {
-        resolve();
-    });
-}
 
 /**
  * Retrieves wishlist and tradable games and merges that data
@@ -206,8 +67,8 @@ export class MatchPage {
         }
     }
     static async getData() {
-        // ensure it's a page with a mutual match section
-        if (document.querySelector('#mutualmatches') === null) {
+        // ensure it's a page with a match section
+        if (document.querySelector('.matchcol') === null) {
             return;
         }
         const gameLinks = scrapeGames();
@@ -229,8 +90,8 @@ export class MatchPage {
     static get routes() {
         return [
             new Route(
-                // https://barter.vg/u/<user_id>/[wt]/m/??
-                /^https:\/\/barter\.vg\/u\/.+\/[wt]\/m\/\??$/,
+                // https://barter.vg/u/<user_id>/[wt]/m || /m/ || /m/?
+                /^https:\/\/barter\.vg\/u\/.+\/[wt]\/m(|\/|\?)$/,
                 this,
                 this.prototype.ready,
                 null

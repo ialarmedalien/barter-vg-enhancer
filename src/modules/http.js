@@ -56,9 +56,7 @@ export default class Http {
                 url: url,
                 onload: function (gmResponse) {
                     const headers = getHeaderFunction(gmResponse.responseHeaders.split('\n'));
-                    let responseData = gmResponse.response;
-
-                    responseData = defaultHttpResponseTransform(responseData, headers);
+                    const responseData = defaultHttpResponseTransform(gmResponse.response, headers);
                     const response = {
                         data: responseData,
                         status: gmResponse.status,
